@@ -41,7 +41,7 @@ public class AssignmentOrchestrationService {
   private static final String FAILURE_REASON_STRATEGIES_EXHAUSTED =
       "All configured strategies exhausted without a winner";
 
-    private final ApplicationEventPublisher applicationEventPublisher;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final AssignmentProperties assignmentProperties;
   private final AssignmentRepository assignmentRepository;
   private final AuditEventPublisher auditEventPublisher;

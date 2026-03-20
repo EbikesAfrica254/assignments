@@ -1,15 +1,17 @@
 package com.ebikes.assignments.listeners;
 
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.ebikes.assignments.constants.EventConstants.RoutingKeys;
 import com.ebikes.assignments.dtos.events.incoming.AgentShortlistResolvedEvent;
 import com.ebikes.assignments.services.assignments.AssignmentOrchestrationService;
 import com.ebikes.assignments.services.events.InboxService;
 import com.ebikes.assignments.support.context.EventContext;
 import com.ebikes.assignments.support.context.ExecutionContext;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
@@ -29,13 +31,13 @@ public class AgentShortlistResolvedHandler implements IncomingEventHandler {
 
     log.debug("Received agent shortlist resolved event: orderId={}", event.orderId());
 
-    if (EventContext.absent()){
+    if (EventContext.absent()) {
       log.warn("No event context found, skipping event processing.");
       return;
     }
 
     if (!inboxService.receive(
-            EventContext.getEventType(), event.serviceReference(), EventContext.getSourceService())) {
+        EventContext.getEventType(), event.serviceReference(), EventContext.getSourceService())) {
       return;
     }
 

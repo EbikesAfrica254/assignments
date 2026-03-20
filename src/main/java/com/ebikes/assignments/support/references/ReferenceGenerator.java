@@ -27,9 +27,9 @@ public final class ReferenceGenerator {
   private static String generate() {
     String datePart = LocalDate.now().format(DATE_FORMATTER);
     String randomPart =
-            RandomStringUtils.insecure()
-                    .nextAlphanumeric(ApplicationConstants.ERROR_REFERENCE_ID_LENGTH)
-                    .toUpperCase();
+        RandomStringUtils.insecure()
+            .nextAlphanumeric(ApplicationConstants.ERROR_REFERENCE_ID_LENGTH)
+            .toUpperCase();
 
     return ApplicationConstants.ERROR_REFERENCE_PREFIX + "-" + datePart + "-" + randomPart;
   }
