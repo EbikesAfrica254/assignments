@@ -15,7 +15,7 @@ management:
     tags:
       application: ebikes-assignments
   server:
-    port: ${MANAGEMENT_SERVER_PORT:9093}
+    port: ${MANAGEMENT_SERVER_PORT:9094}
 
 server:
   port: ${SERVER_PORT:8094}
