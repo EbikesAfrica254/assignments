@@ -11,5 +11,4 @@ public class BusinessRuleException extends BaseException {
   public BusinessRuleException(ResponseCode code, String developerMessage) {
     super(code, developerMessage);
   }
-
 }

@@ -30,7 +30,7 @@ public class OrderPendingAssignmentHandler implements IncomingEventHandler {
         objectMapper.readValue(payload, OrderPendingAssignmentEvent.class);
 
     log.debug("Received order pending assignment event: orderId={}", event.orderId());
-    if (EventContext.absent()){
+    if (EventContext.absent()) {
       log.warn("No event context found, skipping event processing.");
       return;
     }

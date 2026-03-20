@@ -46,5 +46,4 @@ public class AuditMetadataBuilder {
     }
     return Collections.unmodifiableMap(metadata);
   }
-
 }
