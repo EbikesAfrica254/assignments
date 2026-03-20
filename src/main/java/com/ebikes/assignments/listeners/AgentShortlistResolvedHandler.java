@@ -29,7 +29,7 @@ public class AgentShortlistResolvedHandler implements IncomingEventHandler {
 
     log.debug("Received agent shortlist resolved event: orderId={}", event.orderId());
 
-    if (!EventContext.hasContext()){
+    if (EventContext.absent()){
       log.warn("No event context found, skipping event processing.");
       return;
     }

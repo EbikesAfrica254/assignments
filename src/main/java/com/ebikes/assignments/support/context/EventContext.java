@@ -11,6 +11,10 @@ public class EventContext {
     // prevent instantiation
   }
 
+  public static boolean absent() {
+    return context.get() == null;
+  }
+
   public static void clear() {
     context.remove();
   }
@@ -28,10 +32,6 @@ public class EventContext {
   public static String getSourceService() {
     EventData data = context.get();
     return data != null ? data.sourceService() : null;
-  }
-
-  public static boolean hasContext() {
-    return context.get() != null;
   }
 
   public static void set(

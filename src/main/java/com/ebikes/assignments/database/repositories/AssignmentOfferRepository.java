@@ -13,8 +13,6 @@ import com.ebikes.assignments.enums.OfferStatus;
 @Repository
 public interface AssignmentOfferRepository extends JpaRepository<AssignmentOffer, UUID> {
 
-  List<AssignmentOffer> findByAssignmentIdAndStatus(UUID assignmentId, OfferStatus status);
-
   List<AssignmentOffer> findByStatusAndExpiresAtBefore(
       OfferStatus status, OffsetDateTime threshold);
 }

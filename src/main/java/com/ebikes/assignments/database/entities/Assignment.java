@@ -88,18 +88,6 @@ public class Assignment extends BaseEntity {
     this.version = 0L;
   }
 
-  public void addCandidates(List<ShortlistCandidate> candidates) {
-    guardNotTerminal();
-    if (candidates == null || candidates.isEmpty()) {
-      throw new IllegalArgumentException("Candidate list must not be null or empty");
-    }
-    if (!this.shortlistCandidates.isEmpty()) {
-      throw new IllegalStateException("Candidates already added for assignment: " + getId());
-    }
-
-    this.shortlistCandidates.addAll(candidates);
-  }
-
   public AssignmentOffer createOffer(String agentId, OffsetDateTime expiresAt) {
     guardNotTerminal();
     if (agentId == null || agentId.isBlank()) {
@@ -177,7 +165,7 @@ public class Assignment extends BaseEntity {
     this.cancellationReason = reason;
     this.updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
 
-    return Collections.unmodifiableList(cancelled);
+    return cancelled;
   }
 
   public void updateStrategy(AssignmentStrategy nextStrategy) {
@@ -191,10 +179,6 @@ public class Assignment extends BaseEntity {
 
   public List<AssignmentOffer> getOffers() {
     return Collections.unmodifiableList(offers);
-  }
-
-  public List<ShortlistCandidate> getShortlistCandidates() {
-    return Collections.unmodifiableList(shortlistCandidates);
   }
 
   public void addCandidate(

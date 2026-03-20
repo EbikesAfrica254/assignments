@@ -39,12 +39,6 @@ public final class ExecutionContext {
     return data.userId();
   }
 
-  public static void restore(ContextData snapshot) {
-    if (snapshot != null) {
-      context.set(snapshot);
-    }
-  }
-
   public static void set(
       String userId,
       String activeOrganization,
@@ -72,10 +66,6 @@ public final class ExecutionContext {
             Collections.emptySet(),
             Collections.emptySet(),
             ApplicationConstants.SYSTEM_ID));
-  }
-
-  public static ContextData snapshot() {
-    return context.get();
   }
 
   public record ContextData(

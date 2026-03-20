@@ -12,8 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -25,12 +23,12 @@ public class OrderReassignmentRequestedHandler implements IncomingEventHandler {
 
   @Override
   @Transactional
-  public void handle(byte[] payload) throws IOException {
+  public void handle(byte[] payload) {
     OrderReassignmentRequestedEvent event =
         objectMapper.readValue(payload, OrderReassignmentRequestedEvent.class);
 
     log.debug("Received order reassignment requested event: orderId={}", event.orderId());
-    if (!EventContext.hasContext()){
+    if (EventContext.absent()){
       log.warn("No event context found, skipping event processing.");
       return;
     }

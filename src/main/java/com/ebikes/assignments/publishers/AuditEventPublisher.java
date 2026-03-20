@@ -77,31 +77,6 @@ public class AuditEventPublisher {
       String eventType,
       String failureReason,
       Map<String, String> metadata,
-      String routingKey) {
-
-    var event =
-        new AuditEvent(
-            entityId,
-            entityType,
-            eventType,
-            failureReason,
-            MDC.get(MDCKeys.IP_ADDRESS),
-            metadata,
-            ExecutionContext.getActiveOrganization(),
-            AuditOutcome.FAILURE,
-            null,
-            null,
-            ExecutionContext.getUserId());
-
-    outboxService.save(eventType, event, routingKey);
-  }
-
-  public void publishFailure(
-      UUID entityId,
-      String entityType,
-      String eventType,
-      String failureReason,
-      Map<String, String> metadata,
       String organizationId,
       String routingKey) {
 

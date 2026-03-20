@@ -30,7 +30,7 @@ public class OrderPendingAssignmentHandler implements IncomingEventHandler {
         objectMapper.readValue(payload, OrderPendingAssignmentEvent.class);
 
     log.debug("Received order pending assignment event: orderId={}", event.orderId());
-    if (!EventContext.hasContext()){
+    if (EventContext.absent()){
       log.warn("No event context found, skipping event processing.");
       return;
     }
@@ -55,7 +55,7 @@ public class OrderPendingAssignmentHandler implements IncomingEventHandler {
   }
 
   @Override
-  public boolean matches(String assignmentsKey) {
-    return RoutingKeys.ORDERS_ORDER_ENTERED_PENDING_ASSIGNMENT.equals(assignmentsKey);
+  public boolean matches(String routingKey) {
+    return RoutingKeys.ORDERS_ORDER_ENTERED_PENDING_ASSIGNMENT.equals(routingKey);
   }
 }

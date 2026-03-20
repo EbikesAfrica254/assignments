@@ -88,19 +88,6 @@ public class EventConstants {
     }
   }
 
-  public static final class InboxSourceContext {
-
-    private InboxSourceContext() {
-      // prevent instantiation
-    }
-
-    private static final String DELIMITER = ":";
-
-    public static String getSourceContext(String serviceReference) {
-      return serviceReference.split(DELIMITER)[0];
-    }
-  }
-
   public static final class MessageHeaders {
 
     private MessageHeaders() {
