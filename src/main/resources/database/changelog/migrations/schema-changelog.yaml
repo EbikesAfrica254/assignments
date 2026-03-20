@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: 00-assignments-schema
+      author: system
+      changes:
+        - sqlFile:
+            path: schema/00-assignments-schema.sql
+            relativeToChangelogFile: true
+
+  - changeSet:
+      id: 01-inbox
+      author: system
+      changes:
+        - sqlFile:
+            path: schema/01-inbox.sql
+            relativeToChangelogFile: true
+
+  - changeSet:
+      id: 02-outbox
+      author: system
+      changes:
+        - sqlFile:
+            path: schema/02-outbox.sql
+            relativeToChangelogFile: true
+
+  - changeSet:
+      id: 03-order-contexts
+      author: system
+      changes:
+        - sqlFile:
+            path: schema/03-order-contexts.sql
+            relativeToChangelogFile: true
+
+  - changeSet:
+      id: 04-assignments
+      author: system
+      changes:
+        - sqlFile:
+            path: schema/04-assignments.sql
+            relativeToChangelogFile: true
+
+  - changeSet:
+      id: 05-assignment-offers
+      author: system
+      changes:
+        - sqlFile:
+            path: schema/05-assignment-offers.sql
+            relativeToChangelogFile: true
+
+  - changeSet:
+      id: 06-shortlist-candidates
+      author: system
+      changes:
+        - sqlFile:
+            path: schema/06-shortlist-candidates.sql
+            relativeToChangelogFile: true
