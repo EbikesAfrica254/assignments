@@ -1,0 +1,96 @@
+logging:
+  level:
+    root: INFO
+    com.ebikes.assignments: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  endpoint:
+    health:
+      show-details: never
+  metrics:
+    tags:
+      application: ebikes-assignments
+  server:
+    port: ${MANAGEMENT_SERVER_PORT:9093}
+
+server:
+  port: ${SERVER_PORT:8094}
+
+services:
+  routing:
+    base-url: ${ROUTING_SERVICE_BASE_URL}
+
+security:
+  public-endpoints:
+    - /actuator/health
+    - /actuator/prometheus
+  scopes:
+    - email
+    - openid
+    - profile
+
+spring:
+  application:
+    name: ebikes-assignments
+
+  cloud:
+    stream:
+      output-bindings: eventPublisher-out-0
+      bindings:
+        incomingEventConsumer-in-0:
+          destination: ebikes.domain-events
+          group: ebikes.assignments.incoming
+        eventPublisher-out-0:
+          destination: ebikes.domain-events
+      rabbit:
+        bindings:
+          incomingEventConsumer-in-0:
+            consumer:
+              bindQueue: false
+              declareExchange: false
+              queueNameGroupOnly: true
+          eventPublisher-out-0:
+            producer:
+              declareExchange: false
+              routingKeyExpression: "headers['routingKey']"
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    hikari:
+      maximum-pool-size: ${SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE:10}
+      minimum-idle: ${SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE:2}
+
+  liquibase:
+    enabled: true
+    change-log: classpath:database/changelog/changelog-main.yaml
+    liquibase-schema: assignments
+    parameters:
+      searchPath: classpath:database/changelog/
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: assignments
+        format_sql: false
+        show_sql: false
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST}
+    port: ${SPRING_RABBITMQ_PORT}
+    username: ${SPRING_RABBITMQ_USERNAME}
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI}
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI}
