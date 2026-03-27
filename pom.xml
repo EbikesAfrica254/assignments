@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.3</version>
+    <version>4.0.4</version>
     <relativePath />
   </parent>
 
@@ -29,9 +29,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <!-- dependency/plugin versions -->
-    <aws-sdk.version>2.42.15</aws-sdk.version>
     <checkstyle.version>13.3.0</checkstyle.version>
-    <commons-csv.version>1.14.1</commons-csv.version>
     <google-java-format.version>1.35.0</google-java-format.version>
     <jackson-core.version>3.1.0</jackson-core.version>
     <jacoco.version>0.8.14</jacoco.version>
@@ -42,7 +40,6 @@
     <spotbugs.plugin.version>4.9.8.2</spotbugs.plugin.version>
     <spotless.plugin.version>3.3.0</spotless.plugin.version>
     <spring-cloud.version>2025.1.1</spring-cloud.version>
-    <thymeleaf.version>3.1.3.RELEASE</thymeleaf.version>
 
     <!-- skip flags for build phases -->
     <skipFormatting>false</skipFormatting>
@@ -67,15 +64,6 @@
         <groupId>io.netty</groupId>
         <artifactId>netty-bom</artifactId>
         <version>${netty.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-
-      <!-- aws sdk v2 bom for centralized aws service versions -->
-      <dependency>
-        <groupId>software.amazon.awssdk</groupId>
-        <artifactId>bom</artifactId>
-        <version>${aws-sdk.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
