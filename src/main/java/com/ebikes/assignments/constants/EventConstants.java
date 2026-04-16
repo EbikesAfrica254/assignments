@@ -10,6 +10,7 @@ public class EventConstants {
   @UtilityClass
   public static final class Source {
     public static final String HOST_SERVICE = "assignments";
+
     public static String serviceReference() {
       return ReferenceGenerator.generateServiceReference(HOST_SERVICE);
     }
