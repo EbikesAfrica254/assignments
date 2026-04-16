@@ -1,22 +1,19 @@
 package com.ebikes.assignments.services.assignments;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ebikes.assignments.constants.EventConstants.EventSource;
-import com.ebikes.assignments.constants.EventConstants.EventTypes;
+import com.ebikes.assignments.constants.EventConstants.DomainEvents;
 import com.ebikes.assignments.constants.EventConstants.RoutingKeys;
+import com.ebikes.assignments.constants.EventConstants.Source;
 import com.ebikes.assignments.database.entities.Assignment;
-import com.ebikes.assignments.database.entities.AssignmentOffer;
 import com.ebikes.assignments.database.entities.OrderContext;
 import com.ebikes.assignments.database.repositories.AssignmentRepository;
-import com.ebikes.assignments.database.repositories.OrderContextRepository;
-import com.ebikes.assignments.dtos.events.outgoing.AssignmentStartedEvent;
+import com.ebikes.assignments.dtos.events.outgoing.AssignmentCancelledEvent;
 import com.ebikes.assignments.dtos.events.outgoing.AssignmentSucceededEvent;
-import com.ebikes.assignments.dtos.events.outgoing.OfferCancelledEvent;
 import com.ebikes.assignments.dtos.responses.assignments.AssignmentResponse;
 import com.ebikes.assignments.enums.AssignmentStatus;
 import com.ebikes.assignments.enums.AssignmentStrategy;
@@ -24,9 +21,10 @@ import com.ebikes.assignments.enums.ResponseCode;
 import com.ebikes.assignments.exceptions.DuplicateResourceException;
 import com.ebikes.assignments.exceptions.ResourceNotFoundException;
 import com.ebikes.assignments.mappers.AssignmentMapper;
-import com.ebikes.assignments.publishers.AuditEventPublisher;
 import com.ebikes.assignments.services.events.OutboxService;
-import com.ebikes.assignments.support.audit.AuditMetadataBuilder;
+import com.ebikes.assignments.services.offers.OfferService;
+import com.ebikes.assignments.services.orders.OrderContextService;
+import com.ebikes.assignments.support.audit.AuditTemplate;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,80 +34,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AssignmentService {
 
-  private static final List<AssignmentStatus> TERMINAL_STATUSES =
-      List.of(AssignmentStatus.SUCCEEDED, AssignmentStatus.FAILED, AssignmentStatus.CANCELLED);
-
   private final AssignmentMapper assignmentMapper;
   private final AssignmentRepository assignmentRepository;
-  private final AuditEventPublisher auditEventPublisher;
-  private final OrderContextRepository orderContextRepository;
+  private final AuditTemplate auditTemplate;
+  private final OfferService offerService;
+  private final OrderContextService orderContextService;
   private final OutboxService outboxService;
 
   @Transactional
-  public AssignmentResponse manualAssign(UUID orderId, String agentId, String reason) {
-    log.info("Manual assignment initiated: orderId={}, agentId={}", orderId, agentId);
-
-    OrderContext orderContext =
-        orderContextRepository
-            .findByOrderId(orderId)
-            .orElseThrow(
-                () ->
-                    new ResourceNotFoundException(
-                        ResponseCode.RESOURCE_NOT_FOUND,
-                        "OrderContext not found for orderId: " + orderId));
-
-    assignmentRepository
-        .findByOrderContextIdAndStatusNotIn(orderContext.getId(), TERMINAL_STATUSES)
-        .ifPresent(
-            a -> {
-              throw new DuplicateResourceException(
-                  ResponseCode.INVALID_STATE,
-                  "An active assignment already exists for orderId: " + orderId);
-            });
-
-    Assignment assignment = new Assignment(orderContext, AssignmentStrategy.PREASSIGNED);
-    assignment.awaitResponse();
-    assignment.succeed(agentId);
-
-    assignmentRepository.save(assignment);
-
-    outboxService.save(
-        EventTypes.Assignments.STARTED,
-        new AssignmentStartedEvent(
-            assignment.getId(),
-            orderContext.getOrderId(),
-            orderContext.getOrganizationId(),
-            AssignmentStrategy.PREASSIGNED),
-        RoutingKeys.ASSIGNMENT_STARTED);
-
-    outboxService.save(
-        EventTypes.Assignments.SUCCEEDED,
-        new AssignmentSucceededEvent(
-            assignment.getId(),
-            orderContext.getOrderId(),
-            orderContext.getOrganizationId(),
-            EventSource.serviceReference(),
-            agentId),
-        RoutingKeys.ASSIGNMENT_SUCCEEDED);
-
-    auditEventPublisher.publishSuccess(
-        assignment.getId(),
-        Assignment.class.getSimpleName(),
-        EventTypes.Assignments.SUCCEEDED,
-        AuditMetadataBuilder.forAssignment(assignment),
-        orderContext.getOrganizationId(),
-        RoutingKeys.ASSIGNMENT_AUDIT);
-
-    log.info(
-        "Manual assignment completed: assignmentId={}, agentId={}", assignment.getId(), agentId);
-
-    return assignmentMapper.toResponse(assignment);
-  }
-
-  @Transactional
   public AssignmentResponse cancel(UUID assignmentId, String reason) {
-    log.info("Cancelling assignment: assignmentId={}", assignmentId);
-
     Assignment assignment =
         assignmentRepository
             .findByIdWithPessimisticLock(assignmentId)
@@ -118,25 +51,35 @@ public class AssignmentService {
                     new ResourceNotFoundException(
                         ResponseCode.RESOURCE_NOT_FOUND, "Assignment not found: " + assignmentId));
 
-    List<AssignmentOffer> cancelledOffers = assignment.cancel(reason);
-    assignmentRepository.save(assignment);
+    offerService.cancelActiveOffers(assignment);
 
-    cancelledOffers.forEach(
-        offer ->
-            outboxService.save(
-                EventTypes.AssignmentOffers.CANCELLED,
-                new OfferCancelledEvent(offer.getAgentId(), assignment.getId(), offer.getId()),
-                RoutingKeys.ASSIGNMENT_OFFER_CANCELLED));
-
-    auditEventPublisher.publishSuccess(
-        assignment.getId(),
-        Assignment.class.getSimpleName(),
-        EventTypes.Assignments.CANCELLED,
-        AuditMetadataBuilder.forAssignment(assignment),
+    auditTemplate.execute(
+        assignment,
         assignment.getOrderContext().getOrganizationId(),
+        DomainEvents.Assignments.CANCELLED,
+        () -> {
+          assignment.cancel(reason);
+          assignmentRepository.save(assignment);
+        });
+
+    outboxService.publish(
+        DomainEvents.Assignments.CANCELLED,
+        new AssignmentCancelledEvent(
+            assignment.getId(),
+            reason,
+            assignment.getOrderContext().getOrderId(),
+            assignment.getOrderContext().getOrganizationId()),
         RoutingKeys.ASSIGNMENT_CANCELLED);
 
+    log.info("Assignment cancelled: assignmentId={}, reason={}", assignmentId, reason);
+
     return assignmentMapper.toResponse(assignment);
+  }
+
+  @Transactional
+  public Assignment create(OrderContext orderContext) {
+    Assignment assignment = build(orderContext);
+    return assignmentRepository.save(assignment);
   }
 
   @Transactional(readOnly = true)
@@ -147,14 +90,65 @@ public class AssignmentService {
   @Transactional(readOnly = true)
   public AssignmentResponse getByOrderId(UUID orderId) {
     Assignment assignment =
-        assignmentRepository
-            .findByOrderContextOrderId(orderId)
+        findByOrderId(orderId)
             .orElseThrow(
                 () ->
                     new ResourceNotFoundException(
                         ResponseCode.RESOURCE_NOT_FOUND,
                         "No assignment found for orderId: " + orderId));
     return assignmentMapper.toResponse(assignment);
+  }
+
+  @Transactional(readOnly = true)
+  public boolean hasActiveAssignment(UUID orderId) {
+    return assignmentRepository.hasActiveAssignmentForOrder(orderId);
+  }
+
+  @Transactional
+  public AssignmentResponse manualAssign(UUID orderId, String agentId, String reason) {
+    OrderContext orderContext = orderContextService.requireByOrderId(orderId);
+
+    if (assignmentRepository.hasActiveAssignmentForOrder(orderId)) {
+      throw new DuplicateResourceException(
+          ResponseCode.INVALID_STATE,
+          "An active assignment already exists for orderId: " + orderId);
+    }
+
+    Assignment assignment = build(orderContext);
+
+    auditTemplate.execute(
+        assignment,
+        orderContext.getOrganizationId(),
+        DomainEvents.Assignments.SUCCEEDED,
+        () -> {
+          assignment.setAssignmentReason(reason);
+          assignment.succeed(agentId);
+          assignmentRepository.save(assignment);
+        });
+
+    outboxService.publish(
+        DomainEvents.Assignments.SUCCEEDED,
+        new AssignmentSucceededEvent(
+            assignment.getId(),
+            orderContext.getOrderId(),
+            orderContext.getOrganizationId(),
+            Source.serviceReference(),
+            agentId),
+        RoutingKeys.ASSIGNMENT_SUCCEEDED);
+
+    log.info(
+        "Manual assignment completed: assignmentId={}, agentId={}", assignment.getId(), agentId);
+
+    return assignmentMapper.toResponse(assignment);
+  }
+
+  @Transactional
+  public void save(Assignment assignment) {
+    assignmentRepository.save(assignment);
+  }
+
+  Optional<Assignment> findByOrderId(UUID orderId) {
+    return assignmentRepository.findByOrderContextOrderId(orderId);
   }
 
   Assignment requireById(UUID assignmentId) {
@@ -164,5 +158,13 @@ public class AssignmentService {
             () ->
                 new ResourceNotFoundException(
                     ResponseCode.RESOURCE_NOT_FOUND, "Assignment not found: " + assignmentId));
+  }
+
+  private Assignment build(OrderContext orderContext) {
+    return Assignment.builder()
+        .orderContext(orderContext)
+        .status(AssignmentStatus.AWAITING_RESPONSE)
+        .strategy(AssignmentStrategy.PREASSIGNED)
+        .build();
   }
 }
