@@ -8,6 +8,10 @@ public enum OfferStatus {
   EXPIRED,
   EXPIRY_FAILED;
 
+  public boolean isExhausted() {
+    return this == ACCEPTED || this == DECLINED || this == EXPIRED || this == EXPIRY_FAILED;
+  }
+
   public boolean isTerminal() {
     return this == ACCEPTED
         || this == CANCELLED
