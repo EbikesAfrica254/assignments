@@ -46,7 +46,7 @@ class ReassignmentRequestedHandlerTest extends AbstractListenerTest {
 
     @Test
     @DisplayName("should skip when event context is absent")
-    void shouldSkipWhenEventContextIsAbsent() throws Exception {
+    void shouldSkipWhenEventContextIsAbsent() {
       ReassignmentRequestedEvent event = ReassignmentRequestedEventFixtures.standard();
       byte[] payload = objectMapper.writeValueAsBytes(event);
 
@@ -57,7 +57,7 @@ class ReassignmentRequestedHandlerTest extends AbstractListenerTest {
 
     @Test
     @DisplayName("should skip on duplicate event")
-    void shouldSkipOnDuplicateEvent() throws Exception {
+    void shouldSkipOnDuplicateEvent() {
       ReassignmentRequestedEvent event = ReassignmentRequestedEventFixtures.standard();
       byte[] payload = objectMapper.writeValueAsBytes(event);
       EventContext.set("corr-id", "event-type", "routing-key", "source");
@@ -71,7 +71,7 @@ class ReassignmentRequestedHandlerTest extends AbstractListenerTest {
 
     @Test
     @DisplayName("should process event and mark processed")
-    void shouldProcessEventAndMarkProcessed() throws Exception {
+    void shouldProcessEventAndMarkProcessed() {
       ReassignmentRequestedEvent event = ReassignmentRequestedEventFixtures.standard();
       byte[] payload = objectMapper.writeValueAsBytes(event);
       EventContext.set("corr-id", "event-type", "routing-key", "source");
@@ -85,7 +85,7 @@ class ReassignmentRequestedHandlerTest extends AbstractListenerTest {
 
     @Test
     @DisplayName("should clear execution context after processing")
-    void shouldClearExecutionContextAfterProcessing() throws Exception {
+    void shouldClearExecutionContextAfterProcessing() {
       ReassignmentRequestedEvent event = ReassignmentRequestedEventFixtures.standard();
       byte[] payload = objectMapper.writeValueAsBytes(event);
       EventContext.set("corr-id", "event-type", "routing-key", "source");
@@ -98,7 +98,7 @@ class ReassignmentRequestedHandlerTest extends AbstractListenerTest {
 
     @Test
     @DisplayName("should swallow exception when process throws")
-    void shouldSwallowExceptionWhenProcessThrows() throws Exception {
+    void shouldSwallowExceptionWhenProcessThrows() {
       ReassignmentRequestedEvent event = ReassignmentRequestedEventFixtures.standard();
       byte[] payload = objectMapper.writeValueAsBytes(event);
       EventContext.set("corr-id", "event-type", "routing-key", "source");
@@ -112,7 +112,7 @@ class ReassignmentRequestedHandlerTest extends AbstractListenerTest {
 
     @Test
     @DisplayName("should clear execution context when process throws")
-    void shouldClearExecutionContextWhenProcessThrows() throws Exception {
+    void shouldClearExecutionContextWhenProcessThrows() {
       ReassignmentRequestedEvent event = ReassignmentRequestedEventFixtures.standard();
       byte[] payload = objectMapper.writeValueAsBytes(event);
       EventContext.set("corr-id", "event-type", "routing-key", "source");
