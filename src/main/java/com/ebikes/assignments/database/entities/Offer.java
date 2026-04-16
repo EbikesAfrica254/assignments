@@ -2,6 +2,9 @@ package com.ebikes.assignments.database.entities;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,16 +21,20 @@ import com.ebikes.assignments.database.entities.bases.BaseEntity;
 import com.ebikes.assignments.enums.OfferStatus;
 import com.ebikes.assignments.enums.ResponseCode;
 import com.ebikes.assignments.exceptions.BusinessRuleException;
+import com.ebikes.assignments.support.audit.Auditable;
 
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "assignment_offers", schema = "assignments")
-public class AssignmentOffer extends BaseEntity {
+@SuperBuilder
+@Table(name = "offers", schema = "assignments")
+public class Offer extends BaseEntity implements Auditable {
 
   @Column(name = "agent_id", nullable = false, length = 36)
   @NotNull private String agentId;
@@ -36,6 +43,7 @@ public class AssignmentOffer extends BaseEntity {
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   private Assignment assignment;
 
+  @Builder.Default
   @Column(name = "expiry_failure_count", nullable = false)
   private int expiryFailureCount = 0;
 
@@ -45,37 +53,18 @@ public class AssignmentOffer extends BaseEntity {
   @Column(name = "responded_at", columnDefinition = "TIMESTAMPTZ")
   private OffsetDateTime respondedAt;
 
+  @Builder.Default
   @Column(name = "status", nullable = false, length = 20)
   @Enumerated(EnumType.STRING)
-  @NotNull private OfferStatus status;
+  @NotNull private OfferStatus status = OfferStatus.CREATED;
 
   @Column(name = "updated_at", columnDefinition = "TIMESTAMPTZ")
   private OffsetDateTime updatedAt;
 
+  @Builder.Default
   @Column(name = "version", nullable = false)
   @Version
-  private Long version;
-
-  AssignmentOffer(String agentId, Assignment assignment, OffsetDateTime expiresAt) {
-    if (agentId == null || agentId.isBlank()) {
-      throw new IllegalArgumentException("agentId is required");
-    }
-    if (assignment == null) {
-      throw new IllegalArgumentException("assignment is required");
-    }
-    if (expiresAt == null) {
-      throw new IllegalArgumentException("expiresAt is required");
-    }
-    if (!expiresAt.isAfter(OffsetDateTime.now(ZoneOffset.UTC))) {
-      throw new IllegalArgumentException("expiresAt must be in the future");
-    }
-
-    this.agentId = agentId;
-    this.assignment = assignment;
-    this.expiresAt = expiresAt;
-    this.status = OfferStatus.CREATED;
-    this.version = 0L;
-  }
+  private Long version = 0L;
 
   public void accept() {
     guardNotTerminal();
@@ -105,6 +94,10 @@ public class AssignmentOffer extends BaseEntity {
     this.updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
   }
 
+  public boolean isExpired() {
+    return OffsetDateTime.now(ZoneOffset.UTC).isAfter(this.expiresAt);
+  }
+
   public void recordExpiryFailure(int maxAttempts) {
     if (this.status != OfferStatus.CREATED) {
       throw new IllegalStateException(
@@ -117,8 +110,14 @@ public class AssignmentOffer extends BaseEntity {
     this.updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
   }
 
-  public boolean isExpired() {
-    return OffsetDateTime.now(ZoneOffset.UTC).isAfter(this.expiresAt);
+  @Override
+  public Map<String, String> toAuditMetadata() {
+    Map<String, String> metadata = new HashMap<>();
+    metadata.put("offerId", this.getId().toString());
+    metadata.put("agentId", this.agentId);
+    metadata.put("assignmentId", this.assignment.getId().toString());
+    metadata.put("status", this.status.name());
+    return Collections.unmodifiableMap(metadata);
   }
 
   private void guardNotExpired() {

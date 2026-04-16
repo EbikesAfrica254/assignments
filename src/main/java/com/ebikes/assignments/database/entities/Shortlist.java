@@ -18,12 +18,14 @@ import com.ebikes.assignments.enums.VehicleClass;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "shortlist_candidates", schema = "assignments")
-public class ShortlistCandidate extends BaseEntity {
+@SuperBuilder
+@Table(name = "shortlist", schema = "assignments")
+public class Shortlist extends BaseEntity {
 
   @Column(name = "agent_id", nullable = false, length = 36)
   @NotNull private String agentId;
@@ -48,43 +50,9 @@ public class ShortlistCandidate extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @NotNull private VehicleClass vehicleClass;
 
-  ShortlistCandidate(
-      String agentId,
-      Assignment assignment,
-      boolean isPreferred,
-      BigDecimal latitude,
-      BigDecimal longitude,
-      VehicleClass vehicleClass) {
-    if (agentId == null || agentId.isBlank()) {
-      throw new IllegalArgumentException("agentId is required");
-    }
-    if (assignment == null) {
-      throw new IllegalArgumentException("assignment is required");
-    }
-    if (latitude == null) {
-      throw new IllegalArgumentException("latitude is required");
-    }
-    if (longitude == null) {
-      throw new IllegalArgumentException("longitude is required");
-    }
-    if (vehicleClass == null) {
-      throw new IllegalArgumentException("vehicleClass is required");
-    }
-
-    this.agentId = agentId;
-    this.assignment = assignment;
-    this.isPreferred = isPreferred;
-    this.latitude = latitude;
-    this.longitude = longitude;
-    this.vehicleClass = vehicleClass;
-  }
-
-  void assignRank(int rank) {
+  public void assignRank(@NotNull int rank) {
     if (rank < 1) {
       throw new IllegalArgumentException("Rank must be a positive integer");
-    }
-    if (this.rank != null) {
-      throw new IllegalStateException("Rank already assigned for agent: " + agentId);
     }
     this.rank = rank;
   }
