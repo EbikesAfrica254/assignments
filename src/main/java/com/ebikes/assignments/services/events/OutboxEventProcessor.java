@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ebikes.assignments.constants.ApplicationConstants;
-import com.ebikes.assignments.constants.EventConstants.MessageHeaders;
+import com.ebikes.assignments.constants.ApplicationConstants.MessageHeaders;
 import com.ebikes.assignments.database.entities.Outbox;
 import com.ebikes.assignments.database.repositories.OutboxRepository;
 

@@ -1,6 +1,5 @@
 package com.ebikes.assignments.services.events;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,6 +32,24 @@ public class OutboxService {
   private final OutboxRepository repository;
 
   @Transactional
+  public void bulkPublish(String eventType, List<?> payloads, String routingKey) {
+    List<Outbox> outboxes =
+        payloads.stream().map(payload -> build(eventType, payload, routingKey)).toList();
+    repository.saveAll(outboxes);
+    log.debug("Outbox records created: eventType={}, count={}", eventType, outboxes.size());
+  }
+
+  @Transactional
+  public void publish(String eventType, Object payload, String routingKey) {
+    Outbox outbox =
+        Outbox.builder().eventType(eventType).payload(payload).routingKey(routingKey).build();
+
+    repository.save(outbox);
+
+    log.debug("Outbox record created: eventType={}, outboxId={}", eventType, outbox.getId());
+  }
+
+  @Transactional
   public void retry(UUID outboxId) {
     log.info("Retrying failed outbox event: outboxId={}", outboxId);
 
@@ -56,16 +73,6 @@ public class OutboxService {
     return failedEvents.size();
   }
 
-  @Transactional
-  public void save(String eventType, Serializable payload, String routingKey) {
-    Outbox outbox =
-        Outbox.builder().eventType(eventType).payload(payload).routingKey(routingKey).build();
-
-    repository.save(outbox);
-
-    log.debug("Outbox record created: eventType={}, outboxId={}", eventType, outbox.getId());
-  }
-
   @Transactional(readOnly = true)
   public PaginatedResponse<OutboxResponse> search(OutboxFilter filter) {
     Specification<Outbox> spec = OutboxSpecifications.buildSpecification(filter);
@@ -82,5 +89,9 @@ public class OutboxService {
             () ->
                 new ResourceNotFoundException(
                     ResponseCode.RESOURCE_NOT_FOUND, "Outbox event not found: " + outboxId));
+  }
+
+  private Outbox build(String eventType, Object payload, String routingKey) {
+    return Outbox.builder().eventType(eventType).payload(payload).routingKey(routingKey).build();
   }
 }
