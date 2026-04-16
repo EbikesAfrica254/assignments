@@ -7,7 +7,7 @@ import com.ebikes.assignments.enums.OfferStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record AssignmentOfferResponse(
+public record OfferResponse(
     UUID id,
     String agentId,
     UUID assignmentId,
