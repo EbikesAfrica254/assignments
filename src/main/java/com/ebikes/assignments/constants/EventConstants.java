@@ -7,9 +7,9 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class EventConstants {
 
-  public static final class EventSource {
+  public static final class Source {
 
-    private EventSource() {
+    private Source() {
       // prevent instantiation
     }
 
@@ -20,82 +20,58 @@ public class EventConstants {
     }
   }
 
-  public static final class EventTypes {
+  @UtilityClass
+  public static final class DomainEvents {
 
-    private EventTypes() {
-      // prevent instantiation
-    }
-
+    @UtilityClass
     public static final class Assignments {
-
-      private Assignments() {
-        // prevent instantiation
-      }
-
-      public static final String CANCELLED = EventSource.HOST_SERVICE + ".assignment.cancelled";
-      public static final String FAILED = EventSource.HOST_SERVICE + ".assignment.failed";
-      public static final String STARTED = EventSource.HOST_SERVICE + ".assignment.started";
-      public static final String SUCCEEDED = EventSource.HOST_SERVICE + ".assignment.succeeded";
+      public static final String CANCELLED = Source.HOST_SERVICE + ".assignment.cancelled";
+      public static final String FAILED = Source.HOST_SERVICE + ".assignment.failed";
+      public static final String STARTED = Source.HOST_SERVICE + ".assignment.started";
+      public static final String SUCCEEDED = Source.HOST_SERVICE + ".assignment.succeeded";
     }
 
-    public static final class AssignmentOffers {
-
-      private AssignmentOffers() {
-        // prevent instantiation
-      }
-
-      public static final String ACCEPTED = EventSource.HOST_SERVICE + ".assignment_offer.accepted";
-      public static final String CANCELLED =
-          EventSource.HOST_SERVICE + ".assignment_offer.cancelled";
-      public static final String CREATED = EventSource.HOST_SERVICE + ".assignment_offer.created";
-      public static final String DECLINED = EventSource.HOST_SERVICE + ".assignment_offer.declined";
-      public static final String EXPIRED = EventSource.HOST_SERVICE + ".assignment_offer.expired";
+    @UtilityClass
+    public static final class Offers {
+      public static final String ACCEPTED = Source.HOST_SERVICE + ".offer.accepted";
+      public static final String CANCELLED = Source.HOST_SERVICE + ".offer.cancelled";
+      public static final String CREATED = Source.HOST_SERVICE + ".offer.created";
+      public static final String DECLINED = Source.HOST_SERVICE + ".offer.declined";
+      public static final String EXPIRED = Source.HOST_SERVICE + ".offer.expired";
     }
   }
 
-  public static final class RoutingKeys {
-
-    private RoutingKeys() {
-      // prevent instantiation
-    }
-
-    // inbound — consumed event assignments keys
+  @UtilityClass
+  public static final class ExternalContracts {
     public static final String ORDERS_ORDER_ENTERED_PENDING_ASSIGNMENT =
         "orders.order.entered_pending_assignment";
     public static final String ORDERS_ORDER_REASSIGNMENT_REQUESTED =
         "orders.order.reassignment_requested";
     public static final String WORKFORCE_AGENT_SHORTLIST_RESOLVED =
         "workforce.agent_shortlist.resolved";
+  }
+
+  @UtilityClass
+  public static final class RoutingKeys {
 
     // outbound — audit assignments keys
-    public static final String ASSIGNMENT_AUDIT = audit(EventSource.HOST_SERVICE + ".assignment");
+    public static final String ASSIGNMENT_AUDIT = audit(Source.HOST_SERVICE + ".assignment");
     public static final String ASSIGNMENT_OFFER_AUDIT =
-        audit(EventSource.HOST_SERVICE + ".assignment-offer");
+        audit(Source.HOST_SERVICE + ".assignment-offer");
 
     // outbound — domain event assignments keys
-    public static final String ASSIGNMENT_CANCELLED = EventTypes.Assignments.CANCELLED;
-    public static final String ASSIGNMENT_FAILED = EventTypes.Assignments.FAILED;
-    public static final String ASSIGNMENT_STARTED = EventTypes.Assignments.STARTED;
-    public static final String ASSIGNMENT_SUCCEEDED = EventTypes.Assignments.SUCCEEDED;
-    public static final String ASSIGNMENT_OFFER_ACCEPTED = EventTypes.AssignmentOffers.ACCEPTED;
-    public static final String ASSIGNMENT_OFFER_CANCELLED = EventTypes.AssignmentOffers.CANCELLED;
-    public static final String ASSIGNMENT_OFFER_CREATED = EventTypes.AssignmentOffers.CREATED;
-    public static final String ASSIGNMENT_OFFER_DECLINED = EventTypes.AssignmentOffers.DECLINED;
-    public static final String ASSIGNMENT_OFFER_EXPIRED = EventTypes.AssignmentOffers.EXPIRED;
+    public static final String ASSIGNMENT_CANCELLED = DomainEvents.Assignments.CANCELLED;
+    public static final String ASSIGNMENT_FAILED = DomainEvents.Assignments.FAILED;
+    public static final String ASSIGNMENT_STARTED = DomainEvents.Assignments.STARTED;
+    public static final String ASSIGNMENT_SUCCEEDED = DomainEvents.Assignments.SUCCEEDED;
+    public static final String ASSIGNMENT_OFFER_ACCEPTED = DomainEvents.Offers.ACCEPTED;
+    public static final String ASSIGNMENT_OFFER_CANCELLED = DomainEvents.Offers.CANCELLED;
+    public static final String ASSIGNMENT_OFFER_CREATED = DomainEvents.Offers.CREATED;
+    public static final String ASSIGNMENT_OFFER_DECLINED = DomainEvents.Offers.DECLINED;
+    public static final String ASSIGNMENT_OFFER_EXPIRED = DomainEvents.Offers.EXPIRED;
 
     public static String audit(String domain) {
       return domain + ".audit";
     }
-  }
-
-  public static final class MessageHeaders {
-
-    private MessageHeaders() {
-      // prevent instantiation
-    }
-
-    public static final String EVENT_TYPE = "eventType";
-    public static final String OUTBOX_ID = "outboxId";
-    public static final String ROUTING_KEY = "assignmentsKey";
   }
 }

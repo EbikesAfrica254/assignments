@@ -9,6 +9,17 @@ public final class ApplicationConstants {
   public static final String REQUEST_ID_HEADER = "X-Request-Id";
   public static final String SYSTEM_ID = "00000000-0000-0000-0000-000000000000";
 
+  public static final class MessageHeaders {
+
+    private MessageHeaders() {
+      // prevent instantiation
+    }
+
+    public static final String EVENT_TYPE = "eventType";
+    public static final String OUTBOX_ID = "outboxId";
+    public static final String ROUTING_KEY = "assignmentsKey";
+  }
+
   public static final class Outbox {
     public static final String BINDING_NAME = "eventPublisher-out-0";
     public static final int MAX_RETRY_COUNT = 5;
