@@ -1,19 +1,19 @@
-package com.ebikes.assignments.adapters;
+package com.ebikes.assignments.adapters.routing;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
-import com.ebikes.assignments.configurations.properties.RoutingServiceProperties;
 import com.ebikes.assignments.database.entities.OrderContext;
-import com.ebikes.assignments.database.entities.ShortlistCandidate;
-import com.ebikes.assignments.dtos.internal.MatrixAgentDto;
-import com.ebikes.assignments.dtos.internal.MatrixRequestDto;
-import com.ebikes.assignments.dtos.internal.MatrixResponseDto;
+import com.ebikes.assignments.database.entities.Shortlist;
+import com.ebikes.assignments.dtos.internal.MatrixAgent;
+import com.ebikes.assignments.dtos.internal.MatrixRequest;
+import com.ebikes.assignments.dtos.internal.MatrixResponse;
 import com.ebikes.assignments.dtos.responses.api.SuccessResponse;
 import com.ebikes.assignments.enums.ResponseCode;
 import com.ebikes.assignments.exceptions.ExternalServiceException;
@@ -22,25 +22,19 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class RoutingServiceClient {
+public class RoutingServiceAdapter {
 
   private static final String MATRICES_ENDPOINT = "/matrices";
 
   private final RestClient restClient;
 
-  public RoutingServiceClient(
-      RestClient.Builder restClientBuilder, RoutingServiceProperties properties) {
-    this.restClient =
-        restClientBuilder
-            .baseUrl(properties.getBaseUrl())
-            .defaultHeader("Content-Type", "application/json")
-            .build();
+  public RoutingServiceAdapter(@Qualifier("routingServiceRestClient") RestClient restClient) {
+    this.restClient = restClient;
   }
 
-  public MatrixResponseDto computeMatrix(
-      OrderContext orderContext, List<ShortlistCandidate> candidates) {
+  public MatrixResponse computeMatrix(OrderContext orderContext, List<Shortlist> candidates) {
 
-    MatrixRequestDto request = buildRequest(orderContext, candidates);
+    MatrixRequest request = buildRequest(orderContext, candidates);
 
     log.debug(
         "Requesting matrix from assignments service: orderId={}, candidateCount={}",
@@ -48,7 +42,7 @@ public class RoutingServiceClient {
         candidates.size());
 
     try {
-      SuccessResponse<MatrixResponseDto> response =
+      SuccessResponse<MatrixResponse> response =
           restClient
               .post()
               .uri(MATRICES_ENDPOINT)
@@ -80,14 +74,13 @@ public class RoutingServiceClient {
     }
   }
 
-  private MatrixRequestDto buildRequest(
-      OrderContext orderContext, List<ShortlistCandidate> candidates) {
-    List<MatrixAgentDto> agents =
+  private MatrixRequest buildRequest(OrderContext orderContext, List<Shortlist> candidates) {
+    List<MatrixAgent> agents =
         candidates.stream()
-            .map(c -> new MatrixAgentDto(c.getAgentId(), c.getLatitude(), c.getLongitude()))
+            .map(c -> new MatrixAgent(c.getAgentId(), c.getLatitude(), c.getLongitude()))
             .toList();
 
-    return new MatrixRequestDto(
+    return new MatrixRequest(
         agents,
         orderContext.getPickupLocation().getLatitude(),
         orderContext.getPickupLocation().getLongitude(),
