@@ -5,6 +5,7 @@ import java.util.UUID;
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -28,18 +29,21 @@ public class OutboxController {
 
   private final OutboxService outboxService;
 
+  @PreAuthorize("hasAuthority('SYSTEM_ADMIN')")
   @GetMapping
   public ResponseEntity<PaginatedResponse<OutboxResponse>> search(
       @Valid @ModelAttribute OutboxFilter filter) {
     return ResponseEntity.ok(outboxService.search(filter));
   }
 
+  @PreAuthorize("hasAuthority('SYSTEM_ADMIN')")
   @PatchMapping("/{id}/retry")
   public ResponseEntity<Void> retry(@PathVariable UUID id) {
     outboxService.retry(id);
     return ResponseEntity.noContent().build();
   }
 
+  @PreAuthorize("hasAuthority('SYSTEM_ADMIN')")
   @PostMapping("/failed/retry")
   public ResponseEntity<SuccessResponse<Integer>> retryAll() {
     int count = outboxService.retryAllFailed();
