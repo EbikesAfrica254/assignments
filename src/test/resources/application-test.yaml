@@ -1,0 +1,126 @@
+server:
+  port: 0
+
+spring:
+  # Explicitly exclude all infrastructure autoconfiguration that requires a running
+  # external services. Slice tests (@WebMvcTest, @DataJpaTest) must never attempt
+  # to connect to Redis, RabbitMQ, or any host-local services. Each test layer
+  # provides its own infrastructure via Testcontainers or mocks — never via
+  # fallback to whatever happens to be running on the developer's machine.
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+      - org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration
+      - org.springframework.boot.security.oauth2.client.autoconfigure.servlet.OAuth2ClientWebSecurityAutoConfiguration
+  application:
+    name: ebikes-assignments
+
+  cloud:
+    stream:
+      output-bindings: eventPublisher-out-0
+      bindings:
+        incomingEventConsumer-in-0:
+          destination: ebikes.domain-events
+          group: ebikes.assignments.incoming
+        eventPublisher-out-0:
+          destination: ebikes.domain-events
+      rabbit:
+        bindings:
+          incomingEventConsumer-in-0:
+            consumer:
+              bindQueue: false
+              declareExchange: false
+              queueNameGroupOnly: true
+          eventPublisher-out-0:
+            producer:
+              declareExchange: false
+              routingKeyExpression: "headers['routingKey']"
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/placeholder
+    username: placeholder
+    password: placeholder
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: assignments
+        format_sql: false
+        show_sql: false
+        type:
+          json_format_mapper: com.ebikes.assignments.configurations.HibernateJsonFormatMapperConfiguration
+
+  liquibase:
+    change-log: classpath:database/changelog/changelog-main.yaml
+    enabled: true
+    liquibase-schema: assignments
+    parameters:
+      searchPath: classpath:database/changelog/
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Placeholder values — never resolved directly from this file.
+          # AbstractControllerTest overrides these via @DynamicPropertySource
+          # once WireMock has awaitingResponse and its port is known.
+          # AbstractIntegrationTest overrides these via @DynamicPropertySource
+          # once the Keycloak Testcontainer has awaitingResponse.
+          # A test that reaches this placeholder and attempts to connect has
+          # a misconfigured base class — fail fast is the correct behaviour.
+          jwk-set-uri: http://localhost:0/realms/ebikes/protocol/openid-connect/certs
+          issuer-uri: http://localhost:0/realms/ebikes
+
+  task:
+    scheduling:
+      pool:
+        size: 2
+
+logging:
+  level:
+    root: INFO
+    com.ebikes: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoint:
+    health:
+      show-details: ${ACTUATOR_HEALTH_DETAILS:never}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+security:
+  public-endpoints:
+    - /actuator/health
+    - /actuator/prometheus
+  scopes:
+    - email
+    - openid
+    - profile
+
+services:
+  assignments:
+    candidates:
+      broadcast-max: 5
+      shortlist-max: 20
+    offers:
+      expiry-max-attempts: 3
+      expiry-minutes: 10
+  routing:
+    base-url: http://localhost:0
