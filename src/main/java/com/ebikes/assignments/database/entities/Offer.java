@@ -98,18 +98,6 @@ public class Offer extends BaseEntity implements Auditable {
     return OffsetDateTime.now(ZoneOffset.UTC).isAfter(this.expiresAt);
   }
 
-  public void recordExpiryFailure(int maxAttempts) {
-    if (this.status != OfferStatus.CREATED) {
-      throw new IllegalStateException(
-          "Cannot record expiry failure on offer not in CREATED state: " + getId());
-    }
-    this.expiryFailureCount++;
-    if (this.expiryFailureCount >= maxAttempts) {
-      this.status = OfferStatus.EXPIRY_FAILED;
-    }
-    this.updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
-  }
-
   @Override
   public Map<String, String> toAuditMetadata() {
     Map<String, String> metadata = new HashMap<>();
