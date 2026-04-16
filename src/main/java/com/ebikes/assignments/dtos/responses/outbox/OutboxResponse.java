@@ -9,9 +9,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record OutboxResponse(
     UUID id,
-    OutboxStatus status,
+    OffsetDateTime createdAt,
     String eventType,
     Integer retryCount,
     String routingKey,
-    OffsetDateTime createdAt,
+    OutboxStatus status,
     OffsetDateTime updatedAt) {}
