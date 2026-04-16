@@ -23,6 +23,11 @@ public interface AssignmentRepository extends JpaRepository<Assignment, UUID> {
   Optional<Assignment> findByOrderContextIdAndStatusNotIn(
       UUID orderContextId, Collection<AssignmentStatus> statuses);
 
+  @Query(
+      "SELECT COUNT(a) > 0 FROM Assignment a WHERE a.orderContext.orderId = :orderId AND a.status"
+          + " NOT IN ('SUCCEEDED', 'FAILED', 'CANCELLED')")
+  boolean hasActiveAssignmentForOrder(@Param("orderId") UUID orderId);
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("SELECT a FROM Assignment a WHERE a.id = :id")
   Optional<Assignment> findByIdWithPessimisticLock(@Param("id") UUID id);
