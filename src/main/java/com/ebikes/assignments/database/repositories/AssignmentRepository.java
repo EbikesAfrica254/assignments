@@ -1,6 +1,5 @@
 package com.ebikes.assignments.database.repositories;
 
-import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,15 +12,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.ebikes.assignments.database.entities.Assignment;
-import com.ebikes.assignments.enums.AssignmentStatus;
 
 @Repository
 public interface AssignmentRepository extends JpaRepository<Assignment, UUID> {
 
   Optional<Assignment> findByOrderContextOrderId(UUID orderId);
-
-  Optional<Assignment> findByOrderContextIdAndStatusNotIn(
-      UUID orderContextId, Collection<AssignmentStatus> statuses);
 
   @Query(
       "SELECT COUNT(a) > 0 FROM Assignment a WHERE a.orderContext.orderId = :orderId AND a.status"
