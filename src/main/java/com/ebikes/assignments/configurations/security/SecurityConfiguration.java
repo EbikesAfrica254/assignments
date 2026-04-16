@@ -1,24 +1,18 @@
-package com.ebikes.assignments.configurations;
+package com.ebikes.assignments.configurations.security;
 
 import java.time.Instant;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.boot.security.oauth2.server.resource.autoconfigure.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -26,9 +20,10 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.BearerTokenError;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
+import com.ebikes.assignments.configurations.filters.ContextFilter;
 import com.ebikes.assignments.configurations.properties.SecurityProperties;
 import com.ebikes.assignments.dtos.responses.api.ErrorResponse;
 import com.ebikes.assignments.enums.ResponseCode;
@@ -38,16 +33,17 @@ import lombok.extern.slf4j.Slf4j;
 import tools.jackson.databind.ObjectMapper;
 
 @Configuration
+@EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityConfiguration {
+
   private final ObjectMapper objectMapper;
   private final SecurityProperties securityProperties;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtDecoder decoder) {
-
     return http.csrf(AbstractHttpConfigurer::disable)
         .cors(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(
@@ -66,22 +62,19 @@ public class SecurityConfiguration {
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                     .authenticationEntryPoint(
                         (request, response, authenticationException) -> {
-                          log.error(
-                              "Authentication failed: {}", authenticationException.getMessage());
-
                           ErrorResponse errorResponse =
                               ErrorResponse.from(
                                   authenticationException.getMessage(),
                                   UUID.randomUUID().toString(),
                                   request.getRequestURI(),
                                   ResponseCode.FORBIDDEN);
-
                           response.setStatus(HttpStatus.UNAUTHORIZED.value());
                           response.setContentType("application/json");
                           objectMapper.writeValue(response.getOutputStream(), errorResponse);
                         }))
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .addFilterAfter(new ContextFilter(), BearerTokenAuthenticationFilter.class)
         .build();
   }
 
@@ -128,38 +121,5 @@ public class SecurityConfiguration {
         new BearerTokenError(
             responseCode.getCode(), HttpStatus.UNAUTHORIZED, responseCode.getUserMessage(), issuer);
     return OAuth2TokenValidatorResult.failure(bearerTokenError);
-  }
-
-  private static class RealmRoleGrantedAuthoritiesConverter
-      implements Converter<Jwt, Collection<GrantedAuthority>> {
-
-    private static final String REALM_ACCESS_CLAIM = "realm_access";
-    private static final String ROLES_CLAIM = "roles";
-
-    private final JwtGrantedAuthoritiesConverter defaultConverter =
-        new JwtGrantedAuthoritiesConverter();
-
-    @Override
-    public Collection<GrantedAuthority> convert(Jwt jwt) {
-      Set<GrantedAuthority> authorities = new HashSet<>(defaultConverter.convert(jwt));
-
-      Map<String, Object> realmAccess = jwt.getClaim(REALM_ACCESS_CLAIM);
-      if (realmAccess == null) {
-        return authorities;
-      }
-
-      Object roles = realmAccess.get(ROLES_CLAIM);
-      if (!(roles instanceof Collection<?> roleCollection)) {
-        return authorities;
-      }
-
-      for (Object role : roleCollection) {
-        if (role instanceof String roleName && !roleName.isBlank()) {
-          authorities.add(new SimpleGrantedAuthority(roleName));
-        }
-      }
-
-      return authorities;
-    }
   }
 }
