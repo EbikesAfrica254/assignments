@@ -19,7 +19,7 @@ CREATE TABLE assignments.order_contexts (
 --comment: add check constraints for order_contexts
 ALTER TABLE assignments.order_contexts
     ADD CONSTRAINT chk_order_contexts_vehicle_class
-        CHECK (vehicle_class IN ('BICYCLE', 'CAR', 'MOTORCYCLE'));
+        CHECK (vehicle_class IN ('BICYCLE', 'CAR', 'E_BIKE', 'MOTORCYCLE', 'VAN'));
 
 --comment: add unique constraints for order_contexts
 ALTER TABLE assignments.order_contexts

@@ -44,7 +44,7 @@ databaseChangeLog:
       author: system
       changes:
         - sqlFile:
-            path: schema/05-assignment-offers.sql
+            path: schema/05-offers.sql
             relativeToChangelogFile: true
 
   - changeSet:
@@ -52,5 +52,5 @@ databaseChangeLog:
       author: system
       changes:
         - sqlFile:
-            path: schema/06-shortlist-candidates.sql
+            path: schema/06-shortlist.sql
             relativeToChangelogFile: true
