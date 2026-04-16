@@ -126,8 +126,7 @@ class AssignmentControllerTest extends AbstractControllerTest {
                   .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isOk());
 
-      verify(assignmentService)
-          .manualAssign(orderId, request.agentId(), request.reason());
+      verify(assignmentService).manualAssign(orderId, request.agentId(), request.reason());
     }
 
     @Test
