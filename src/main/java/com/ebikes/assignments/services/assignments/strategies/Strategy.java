@@ -4,7 +4,7 @@ import com.ebikes.assignments.database.entities.Assignment;
 import com.ebikes.assignments.database.entities.OrderContext;
 import com.ebikes.assignments.enums.AssignmentStrategy;
 
-public interface AssignmentStrategyExecutor {
+public interface Strategy {
 
   boolean execute(Assignment assignment, OrderContext orderContext);
 
