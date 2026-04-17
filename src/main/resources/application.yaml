@@ -71,6 +71,9 @@ spring:
             client-secret: ${ASSIGNMENTS_SERVICE_CLIENT_SECRET}
             authorization-grant-type: client_credentials
             client-authentication-method: client_secret_basic
+        provider:
+          keycloak:
+            issuer-uri: ${KEYCLOAK_ISSUER_URI}
       resourceserver:
         jwt:
           issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI}
