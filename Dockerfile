@@ -27,7 +27,7 @@ ARG VERSION
 ARG BUILD_DATE
 ARG VCS_REF
 
-LABEL org.opencontainers.image.title="eBikes Africa assignments service"
+LABEL org.opencontainers.image.title="Ebikes Africa assignments service"
 LABEL org.opencontainers.image.description=""
 LABEL org.opencontainers.image.version="${VERSION}"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"

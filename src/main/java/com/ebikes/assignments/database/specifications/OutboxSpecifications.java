@@ -1,6 +1,5 @@
 package com.ebikes.assignments.database.specifications;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -19,92 +18,64 @@ public class OutboxSpecifications {
   public static final String FIELD_CREATED_AT = "createdAt";
   public static final String FIELD_EVENT_TYPE = "eventType";
   public static final String FIELD_RETRY_COUNT = "retryCount";
-  public static final String FIELD_ROUTING_KEY = "routingKey";
   public static final String FIELD_STATUS = "status";
   public static final String FIELD_UPDATED_AT = "updatedAt";
 
   public static final Set<String> ALLOWED_SORT_FIELDS =
       Set.of(FIELD_CREATED_AT, FIELD_EVENT_TYPE, FIELD_RETRY_COUNT, FIELD_STATUS, FIELD_UPDATED_AT);
 
-  private OutboxSpecifications() {
-    // prevent instantiation
-  }
+  private OutboxSpecifications() {}
 
   public static Specification<Outbox> buildSpecification(OutboxFilter filter) {
     return (root, query, criteriaBuilder) -> {
       List<Predicate> predicates = new ArrayList<>();
 
-      addIfPresent(
-          predicates,
-          root,
-          query,
-          criteriaBuilder,
-          filter.getCreatedAtAfter(),
-          offsetDateTimeAfter(FIELD_CREATED_AT, filter.getCreatedAtAfter()));
-      addIfPresent(
-          predicates,
-          root,
-          query,
-          criteriaBuilder,
-          filter.getCreatedAtBefore(),
-          offsetDateTimeBefore(FIELD_CREATED_AT, filter.getCreatedAtBefore()));
-      addIfPresent(
+      FilterUtilities.addIfPresent(
           predicates,
           root,
           query,
           criteriaBuilder,
           filter.getEventType(),
           hasEventType(filter.getEventType()));
-      addIfPresent(
+
+      FilterUtilities.addDateRange(
           predicates,
           root,
           query,
           criteriaBuilder,
-          filter.getMaxRetryCount(),
-          hasMaxRetryCount(filter.getMaxRetryCount()));
-      addIfPresent(
+          FIELD_CREATED_AT,
+          filter.getCreatedAtFrom(),
+          filter.getCreatedAtTo());
+
+      FilterUtilities.addDateRange(
           predicates,
           root,
           query,
           criteriaBuilder,
-          filter.getMinRetryCount(),
-          hasMinRetryCount(filter.getMinRetryCount()));
-      addIfPresent(
-          predicates,
-          root,
-          query,
-          criteriaBuilder,
-          filter.getRoutingKey(),
-          hasRoutingKey(filter.getRoutingKey()));
-      addIfPresent(
-          predicates,
-          root,
-          query,
-          criteriaBuilder,
-          filter.getStatus(),
-          hasStatus(filter.getStatus()));
-      addIfPresent(
-          predicates,
-          root,
-          query,
-          criteriaBuilder,
-          filter.getUpdatedAtAfter(),
-          offsetDateTimeAfter(FIELD_UPDATED_AT, filter.getUpdatedAtAfter()));
-      addIfPresent(
-          predicates,
-          root,
-          query,
-          criteriaBuilder,
-          filter.getUpdatedAtBefore(),
-          offsetDateTimeBefore(FIELD_UPDATED_AT, filter.getUpdatedAtBefore()));
+          FIELD_UPDATED_AT,
+          filter.getUpdatedAtFrom(),
+          filter.getUpdatedAtTo());
+
+      if (filter.getStatus() != null) {
+        predicates.add(hasStatus(filter.getStatus()).toPredicate(root, query, criteriaBuilder));
+      }
+
+      if (filter.getMinRetryCount() != null) {
+        predicates.add(
+            hasMinRetryCount(filter.getMinRetryCount()).toPredicate(root, query, criteriaBuilder));
+      }
+
+      if (filter.getMaxRetryCount() != null) {
+        predicates.add(
+            hasMaxRetryCount(filter.getMaxRetryCount()).toPredicate(root, query, criteriaBuilder));
+      }
 
       return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     };
   }
 
   public static Specification<Outbox> hasEventType(String eventType) {
-    return (root, query, criteriaBuilder) ->
-        criteriaBuilder.equal(root.get(FIELD_EVENT_TYPE), eventType);
+    return FilterUtilities.likeIgnoreCase(FIELD_EVENT_TYPE, eventType);
   }
 
   public static Specification<Outbox> hasMaxRetryCount(Integer maxRetryCount) {
@@ -117,33 +88,7 @@ public class OutboxSpecifications {
         criteriaBuilder.greaterThanOrEqualTo(root.get(FIELD_RETRY_COUNT), minRetryCount);
   }
 
-  public static Specification<Outbox> hasRoutingKey(String routingKey) {
-    return (root, query, criteriaBuilder) ->
-        criteriaBuilder.equal(root.get(FIELD_ROUTING_KEY), routingKey);
-  }
-
   public static Specification<Outbox> hasStatus(OutboxStatus status) {
     return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(FIELD_STATUS), status);
-  }
-
-  public static Specification<Outbox> offsetDateTimeAfter(String fieldPath, OffsetDateTime after) {
-    return FilterUtilities.offsetDateTimeAfter(fieldPath, after);
-  }
-
-  public static Specification<Outbox> offsetDateTimeBefore(
-      String fieldPath, OffsetDateTime before) {
-    return FilterUtilities.offsetDateTimeBefore(fieldPath, before);
-  }
-
-  private static void addIfPresent(
-      List<Predicate> predicates,
-      jakarta.persistence.criteria.Root<Outbox> root,
-      jakarta.persistence.criteria.CriteriaQuery<?> query,
-      jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
-      Object value,
-      Specification<Outbox> spec) {
-    if (value != null && !(value instanceof String s && s.isBlank())) {
-      predicates.add(spec.toPredicate(root, query, criteriaBuilder));
-    }
   }
 }

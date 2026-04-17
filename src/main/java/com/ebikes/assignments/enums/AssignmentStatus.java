@@ -4,7 +4,6 @@ public enum AssignmentStatus {
   AWAITING_RESPONSE,
   CANCELLED,
   FAILED,
-  STARTED,
   SUCCEEDED;
 
   public boolean isTerminal() {

@@ -2,6 +2,7 @@
 CREATE TABLE assignments.assignments (
      id                  UUID         NOT NULL DEFAULT gen_random_uuid(),
 
+    assignment_reason    TEXT,
      cancellation_reason TEXT,
      created_at          TIMESTAMPTZ  NOT NULL,
      failure_reason      TEXT,
@@ -23,7 +24,7 @@ ALTER TABLE assignments.assignments
 --comment: add check constraints for assignments
 ALTER TABLE assignments.assignments
     ADD CONSTRAINT chk_assignments_status
-        CHECK (status IN ('AWAITING_RESPONSE', 'CANCELLED', 'FAILED', 'STARTED', 'SUCCEEDED'));
+        CHECK (status IN ('AWAITING_RESPONSE', 'CANCELLED', 'FAILED', 'SUCCEEDED'));
 
 ALTER TABLE assignments.assignments
     ADD CONSTRAINT chk_assignments_strategy

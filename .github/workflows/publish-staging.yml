@@ -122,7 +122,7 @@ jobs:
             BUILD_DATE=${{ steps.image.outputs.build_date }}
             VCS_REF=${{ steps.image.outputs.full_sha }}
           labels: |
-            org.opencontainers.image.title=eBikes Africa assignments service
+            org.opencontainers.image.title=Ebikes Africa assignments service
             org.opencontainers.image.version=staging
             org.opencontainers.image.created=${{ steps.image.outputs.build_date }}
             org.opencontainers.image.revision=${{ steps.image.outputs.full_sha }}
@@ -150,7 +150,7 @@ jobs:
               --instance-ids "${INSTANCE_ID}" \
               --document-name "AWS-RunShellScript" \
               --comment "Deploy assignments sha-${SHORT_SHA}" \
-              --parameters commands="/usr/local/bin/deploy-application.sh deploy assignments ${DEPLOYMENT_REFERENCE}" \
+              --parameters commands="/usr/local/bin/ebikes-deploy-backend deploy assignments ${DEPLOYMENT_REFERENCE}" \
               --query 'Command.CommandId' \
               --output text
           )"

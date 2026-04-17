@@ -1,6 +1,5 @@
 package com.ebikes.assignments.services.events;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -35,14 +34,13 @@ public class InboxService {
 
   @Transactional
   public boolean receive(String eventType, String serviceReference, String sourceContext) {
-    try {
-      inboxRepository.save(new Inbox(eventType, serviceReference, sourceContext));
-      log.debug(
-          "Inbox record created: eventType={}, serviceReference={}", eventType, serviceReference);
-      return true;
-    } catch (DataIntegrityViolationException e) {
+    if (inboxRepository.existsById(serviceReference)) {
       log.debug("Duplicate event detected, skipping: serviceReference={}", serviceReference);
       return false;
     }
+    inboxRepository.saveAndFlush(new Inbox(eventType, serviceReference, sourceContext));
+    log.debug(
+        "Inbox record created: eventType={}, serviceReference={}", eventType, serviceReference);
+    return true;
   }
 }

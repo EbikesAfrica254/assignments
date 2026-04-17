@@ -1,37 +1,7 @@
-logging:
-  level:
-    root: INFO
-    com.ebikes.assignments: INFO
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,metrics,prometheus
-  endpoint:
-    health:
-      show-details: never
-  metrics:
-    tags:
-      application: ebikes-assignments
-  server:
-    port: ${MANAGEMENT_SERVER_PORT:9094}
-
 server:
   port: ${SERVER_PORT:8094}
-
-services:
-  routing:
-    base-url: ${ROUTING_SERVICE_BASE_URL}
-
-security:
-  public-endpoints:
-    - /actuator/health
-    - /actuator/prometheus
-  scopes:
-    - email
-    - openid
-    - profile
+  servlet:
+    context-path: /ebikes-assignments
 
 spring:
   application:
@@ -82,6 +52,9 @@ spring:
         default_schema: assignments
         format_sql: false
         show_sql: false
+        type:
+          json_format_mapper: com.ebikes.assignments.configurations.HibernateJsonFormatMapperConfiguration
+
 
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST}
@@ -90,7 +63,56 @@ spring:
 
   security:
     oauth2:
+      client:
+        registration:
+          routing:
+            provider: keycloak
+            client-id: ${ASSIGNMENTS_SERVICE_CLIENT_ID}
+            client-secret: ${ASSIGNMENTS_SERVICE_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            client-authentication-method: client_secret_basic
       resourceserver:
         jwt:
           issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI}
           jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI}
+
+logging:
+  level:
+    root: INFO
+    com.ebikes.assignments: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  endpoint:
+    health:
+      show-details: never
+  metrics:
+    tags:
+      application: ebikes-assignments
+  server:
+    port: ${MANAGEMENT_SERVER_PORT:9094}
+
+services:
+  assignments:
+    candidates:
+      broadcast-max: ${ASSIGNMENTS_CANDIDATES_BROADCAST_MAX:5}
+      shortlist-max: ${ASSIGNMENTS_CANDIDATES_SHORTLIST_MAX:20}
+    offers:
+      expiry-max-attempts: ${ASSIGNMENTS_OFFERS_EXPIRY_MAX_ATTEMPTS:3}
+      expiry-minutes: ${ASSIGNMENTS_OFFERS_EXPIRY_MINITUE:10}
+  routing:
+    base-url: ${ROUTING_SERVICE_BASE_URL}
+
+security:
+  public-endpoints:
+    - /actuator/health
+    - /actuator/prometheus
+  scopes:
+    - email
+    - openid
+    - profile

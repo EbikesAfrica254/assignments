@@ -1,6 +1,6 @@
 package com.ebikes.assignments.enums;
 
-import static com.ebikes.assignments.constants.EventConstants.EventSource.HOST_SERVICE;
+import static com.ebikes.assignments.constants.EventConstants.Source.HOST_SERVICE;
 
 import org.springframework.http.HttpStatus;
 

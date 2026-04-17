@@ -50,4 +50,32 @@
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
     </Match>
 
+    <!--
+      EI_EXPOSE_REP2: false positive on Spring-managed collaborator injection.
+
+      SpotBugs flags storing an injected RestClient by reference as representation
+      exposure. RestClient is a Spring-managed interface with no externally mutable
+      state — defensive copying is neither meaningful nor possible for interface types.
+    -->
+    <Match>
+        <Or>
+            <Class name="com.ebikes.assignments.adapters.routing.RoutingServiceAdapter"/>
+        </Or>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!--
+      EI_EXPOSE_REP2: false positive on Spring-managed collaborator injection.
+      SpotBugs flags storing an injected ServiceProperties by reference as representation
+      exposure. ServiceProperties is a Spring-managed @ConfigurationProperties bean with
+      no externally mutable state passed in by a caller — defensive copying is neither
+      meaningful nor applicable.
+    -->
+    <Match>
+        <Or>
+            <Class name="com.ebikes.assignments.listeners.external.ShortlistResolvedHandler"/>
+        </Or>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
 </FindBugsFilter>

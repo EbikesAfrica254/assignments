@@ -2,7 +2,7 @@ Here is a **clean, concise, functional README** aligned closely with your routin
 
 ---
 
-# eBikes Africa — Assignment Service
+# Ebikes Africa — Assignment Service
 
 > Orchestrates agent assignment lifecycle from shortlist resolution to final assignment outcome.
 
