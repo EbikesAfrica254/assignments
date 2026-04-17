@@ -1,6 +1,6 @@
 ---
 name: Refactor request
-about: Suggest reorganization of the eBikes Africa assignments service codebase.
+about: Suggest reorganization of the Ebikes Africa assignments service codebase.
 title: "[DATE]: [REFACTOR]"
 labels: refactor
 assignees: ''

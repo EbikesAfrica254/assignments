@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for the eBikes Africa assignments service.
+about: Suggest an idea for the Ebikes Africa assignments service.
 title: '[DATE]: [FEATURE REQUEST]'
 labels: feature
 assignees: ''

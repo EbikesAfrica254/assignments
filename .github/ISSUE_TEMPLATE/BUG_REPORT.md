@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a bug report for the eBikes Africa assignments service.
+about: Create a bug report for the Ebikes Africa assignments service.
 title: "[DATE]: [BUG]"
 labels: bug
 assignees: ''
